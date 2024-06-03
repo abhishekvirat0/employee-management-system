@@ -137,3 +137,25 @@ END;
 
 DELIMITER ;
 ```
+
+## Normalization
+
+Normalization is a way of organizing data in a database to reduce redundancy (duplicate data) and ensure data integrity. 
+[cleaning up your data so it's neat, tidy, and efficient to use.]
+
+First Normal Form (1NF)
+
+    Concept: Ensure that each column contains atomic (indivisible) values.
+    
+    Implementation:
+    All tables (departments, employees, project_assignments, deleted_employees) have atomic columns.
+
+Second Normal Form (2NF)
+
+    Concept: Ensure that the table is in 1NF and all non-key attributes are fully functionally dependent on the primary key.
+    
+    Implementation:
+    
+    **Employees Table** :emp_id is the primary key. name, email, dept_id, created_at, and updated_at depend on emp_id.
+    **Project Assignments Table**: Composite primary key (project_id, emp_id). isActive depends on the composite key.
+    **Deleted Employees Table**: No primary key, but emp_id, name, email, dept_id, and deleted_at are attributes of deleted employees.
