@@ -155,6 +155,7 @@ Second Normal Form (2NF)
     Concept: Ensure that the table is in 1NF and all non-key attributes are fully functionally dependent on the primary key.
     
     Implementation:
+    
     **Employees Table** :emp_id is the primary key. name, email, dept_id, created_at, and updated_at depend on emp_id.
     **Project Assignments Table**: Composite primary key (project_id, emp_id). isActive depends on the composite key.
     **Deleted Employees Table**: No primary key, but emp_id, name, email, dept_id, and deleted_at are attributes of deleted employees.
