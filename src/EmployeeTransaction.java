@@ -15,7 +15,7 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
     String checkEmail = "SELECT COUNT(*) FROM employees WHERE email = ?";
     
     // SQL statement to update the employee count in the 'departments' table
-    String updateDeptCount = "UPDATE departments SET employee_count = (SELECT COUNT(*) FROM employees WHERE dept_id = ?) WHERE dept_id = ?";
+    String updateDeptCount = "UPDATE departments SET employee_count = employee_count + 1 WHERE dept_id = ?";
     
     // SQL statement to assign the new employee to a project
     String insertProjectAssignment = "INSERT INTO project_assignments (emp_id, project_id) VALUES (?, ?)";
@@ -40,6 +40,7 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
             }
 
             // Insert the new employee into the 'employees' table
+
             psInsertEmployee.setInt(1, empId);
             psInsertEmployee.setString(2, name);
             psInsertEmployee.setString(3, email);
@@ -51,6 +52,7 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
             psUpdateDeptCount.executeUpdate();
 
             // Assign the new employee to the default project
+
             psInsertProjectAssignment.setInt(1, empId);
             psInsertProjectAssignment.setInt(2, projectId);
             psInsertProjectAssignment.executeUpdate();
