@@ -1,4 +1,10 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
 
 /**
  * @author Abhishek
@@ -60,6 +66,9 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
             // Commit the transaction if everything is successful
             conn.commit();
         } catch (SQLException e) {
+        	if (e.getErrorCode() == 1062) { // MySQL error code for duplicate entry
+                JOptionPane.showInputDialog(null,"User already Exist with this Id");
+        	}
             // Rollback the transaction in case of any exception and throw the exception
             conn.rollback();
             throw e;
@@ -166,5 +175,30 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
         Connection conn = DatabaseUtil.getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
         return ps.executeQuery();
+    }
+    
+    public Map<String, Integer> fetchDepartment() {
+    	Map<String, Integer> departments = new HashMap<>();
+
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try(Connection conn = DatabaseUtil.getConnection()) {
+
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT dept_id, name FROM departments");
+
+            // Retrieve department names from the result set and add them to the list
+            while (rs.next()) {
+            	int departmentId = rs.getInt("dept_id");
+                String departmentName = rs.getString("name");
+               
+				departments.put(departmentName, departmentId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return departments;
     }
 }

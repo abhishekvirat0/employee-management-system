@@ -4,13 +4,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.awt.Font;
 
 public class EmployeeManagementApp extends JFrame {
 
     private JTextField empIdField;
     private JTextField nameField;
     private JTextField emailField;
-    private JTextField deptIdField;
+//    private JTextField deptIdField;
+    private JComboBox<String> deptDropdown;
     private JTextField projectIdField;
     private JTable employeeTable;
     private EmployeeTransaction employeeTransaction;
@@ -23,56 +27,80 @@ public class EmployeeManagementApp extends JFrame {
 
     private void initUI() {
         setTitle("Employee Management System");
-        setSize(800, 600);
+        setSize(1000, 800);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel();
         panel.setLayout(null);
         add(panel);
+        
+        // Heading
+        JLabel headingLabel = new JLabel("Employee Management System");
+        headingLabel.setFont(new Font("Arial", Font.BOLD, 30));
+        headingLabel.setBounds(300, 10, 600, 40);
+        panel.add(headingLabel);
 
+        
+        // Employee ID
         JLabel empIdLabel = new JLabel("Employee ID:");
-        empIdLabel.setBounds(10, 20, 80, 25);
+        empIdLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        empIdLabel.setBounds(10, 60, 120, 25);
         panel.add(empIdLabel);
 
+
         empIdField = new JTextField(20);
-        empIdField.setBounds(100, 20, 165, 25);
+        empIdField.setBounds(140, 60, 200, 25);
         panel.add(empIdField);
 
+
+        // Name
         JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setBounds(10, 50, 80, 25);
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        nameLabel.setBounds(10, 100, 120, 25);
         panel.add(nameLabel);
 
         nameField = new JTextField(20);
-        nameField.setBounds(100, 50, 165, 25);
+        nameField.setBounds(140, 100, 200, 25);
         panel.add(nameField);
 
-        JLabel emailLabel = new JLabel("Email:");
-        emailLabel.setBounds(10, 80, 80, 25);
-        panel.add(emailLabel);
 
+        // Email
+        JLabel emailLabel = new JLabel("Email:");
+        emailLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        emailLabel.setBounds(10, 140, 120, 25);
+        panel.add(emailLabel);
+        
         emailField = new JTextField(20);
-        emailField.setBounds(100, 80, 165, 25);
+        emailField.setBounds(140, 140, 200, 25);
         panel.add(emailField);
 
-        JLabel deptIdLabel = new JLabel("Dept ID:");
-        deptIdLabel.setBounds(10, 110, 80, 25);
+
+        // Dept ID
+        JLabel deptIdLabel = new JLabel("Deptartment:");
+        deptIdLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        deptIdLabel.setBounds(10, 180, 120, 25);
         panel.add(deptIdLabel);
-
-        deptIdField = new JTextField(20);
-        deptIdField.setBounds(100, 110, 165, 25);
-        panel.add(deptIdField);
         
+        // Fetch department names from the database
+        Map<String, Integer> departments = employeeTransaction.fetchDepartment();
+        // Populate dropdown with department names
+        deptDropdown = new JComboBox<>(departments.keySet().toArray(new String[0]));
+        deptDropdown.setBounds(140, 180, 200, 25);
+        panel.add(deptDropdown);
+        
+        // Project ID
         JLabel projectIdLabel = new JLabel("Project ID:");
-        projectIdLabel.setBounds(10, 140, 80, 25);
+        projectIdLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        projectIdLabel.setBounds(10, 220, 120, 25);
         panel.add(projectIdLabel);
-
+        
         projectIdField = new JTextField(20);
-        projectIdField.setBounds(100, 140, 165, 25);
+        projectIdField.setBounds(140, 220, 200, 25);
         panel.add(projectIdField);
 
         JButton addButton = new JButton("Add");
-        addButton.setBounds(10, 170, 80, 25);
+        addButton.setBounds(10, 260, 150, 25);
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -82,7 +110,7 @@ public class EmployeeManagementApp extends JFrame {
         panel.add(addButton);
 
         JButton updateButton = new JButton("Update Email");
-        updateButton.setBounds(100, 170, 150, 25);
+        updateButton.setBounds(230, 260, 150, 25);
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -92,7 +120,7 @@ public class EmployeeManagementApp extends JFrame {
         panel.add(updateButton);
 
         JButton deleteButton = new JButton("Delete");
-        deleteButton.setBounds(260, 170, 80, 25);
+        deleteButton.setBounds(470, 260, 150, 25);
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -102,7 +130,7 @@ public class EmployeeManagementApp extends JFrame {
         panel.add(deleteButton);
 
         JButton transferButton = new JButton("Transfer");
-        transferButton.setBounds(350, 170, 100, 25);
+        transferButton.setBounds(710, 260, 150, 25);
         transferButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -113,9 +141,12 @@ public class EmployeeManagementApp extends JFrame {
 
         employeeTable = new JTable();
         JScrollPane scrollPane = new JScrollPane(employeeTable);
-        scrollPane.setBounds(10, 210, 760, 340);
+//        scrollPane.setBounds(10, 210, 760, 340);
+        scrollPane.setBounds(10, 310, 760, 240);
         panel.add(scrollPane);
     }
+    
+
     private void loadEmployeeData() {
         try {
             ResultSet rs = employeeTransaction.getAllEmployees();
@@ -143,10 +174,15 @@ public class EmployeeManagementApp extends JFrame {
 
     private void addEmployee() {
         try {
+        	Map<String, Integer> departments = employeeTransaction.fetchDepartment();
+        	System.out.println((String) deptDropdown.getSelectedItem());
             int empId = Integer.parseInt(empIdField.getText());
             String name = nameField.getText();
             String email = emailField.getText();
-            int deptId = Integer.parseInt(deptIdField.getText());
+            String selectedDepartmentName = (String) deptDropdown.getSelectedItem();
+            
+            // Retrieve the department ID based on the selected department name
+            int deptId = departments.get(selectedDepartmentName);
             int projectId = Integer.parseInt(projectIdField.getText());
             employeeTransaction.addEmployee(empId, name, email, deptId, projectId);
             loadEmployeeData();
@@ -181,8 +217,14 @@ public class EmployeeManagementApp extends JFrame {
 
     private void transferEmployee() {
         try {
+        	Map<String, Integer> departments = employeeTransaction.fetchDepartment();
             int empId = Integer.parseInt(empIdField.getText());
-            int deptId = Integer.parseInt(deptIdField.getText());
+            String selectedDepartmentName = (String) deptDropdown.getSelectedItem();
+            
+            // Retrieve the department ID based on the selected department name
+            int deptId = departments.get(selectedDepartmentName);
+            
+//            int deptId = Integer.parseInt(deptIdField.getText());
             employeeTransaction.transferEmployee(empId, deptId);
             loadEmployeeData();
         } catch (SQLException e) {
