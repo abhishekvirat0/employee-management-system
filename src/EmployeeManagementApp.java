@@ -161,7 +161,7 @@ public class EmployeeManagementApp extends JFrame {
                 				rs.getInt("emp_id"), 
                 				rs.getString("name"), 
                 				rs.getString("email"), 
-                				rs.getString("d_name"),
+                				rs.getString("dept_name"),
                 				rs.getInt("project_id")}
                 		);
             }
