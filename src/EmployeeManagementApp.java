@@ -152,7 +152,7 @@ public class EmployeeManagementApp extends JFrame {
             ResultSet rs = employeeTransaction.getAllEmployees();
             DefaultTableModel model = new DefaultTableModel(
             		new String[]{
-            				"Emp ID", "Name", "Email", "Dept ID", "Project ID"
+            				"Emp ID", "Name", "Email", "Dept Name", "Project ID"
             		}, 0);
             
             while (rs.next()) {
@@ -161,7 +161,7 @@ public class EmployeeManagementApp extends JFrame {
                 				rs.getInt("emp_id"), 
                 				rs.getString("name"), 
                 				rs.getString("email"), 
-                				rs.getInt("dept_id"),
+                				rs.getString("d_name"),
                 				rs.getInt("project_id")}
                 		);
             }
