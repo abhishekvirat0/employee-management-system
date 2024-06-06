@@ -173,7 +173,7 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
 //        		+ "SELECT e.*, pa.project_id as project_id FROM employees e LEFT JOIN "
 //        		+ "project_assignments pa ON e.emp_id = pa.emp_id";
 //        
-        String query = "SELECT e.*, d.d_name as d_name, pa.project_id as project_id FROM employees e "
+        String query = "SELECT e.*, d.dept_name as dept_name, pa.project_id as project_id FROM employees e "
                 + "LEFT JOIN departments d ON e.dept_id = d.dept_id "
                 + "LEFT JOIN project_assignments pa ON e.emp_id = pa.emp_id";
         
@@ -191,12 +191,12 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
         try(Connection conn = DatabaseUtil.getConnection()) {
 
             stmt = conn.createStatement();
-            rs = stmt.executeQuery("SELECT dept_id, d_name FROM departments");
+            rs = stmt.executeQuery("SELECT dept_id, dept_name FROM departments");
 
             // Retrieve department names from the result set and add them to the list
             while (rs.next()) {
             	int departmentId = rs.getInt("dept_id");
-                String departmentName = rs.getString("d_name");
+                String departmentName = rs.getString("dept_name");
                
 				departments.put(departmentName, departmentId);
             }
