@@ -1,11 +1,21 @@
 import javax.swing.*;
+import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.table.DefaultTableModel;
+
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Map;
+import java.util.Properties;
 import java.awt.Font;
 
 public class EmployeeManagementApp extends JFrame {
@@ -13,9 +23,15 @@ public class EmployeeManagementApp extends JFrame {
     private JTextField empIdField;
     private JTextField nameField;
     private JTextField emailField;
-//    private JTextField deptIdField;
     private JComboBox<String> deptDropdown;
-    private JTextField projectIdField;
+    private JComboBox<String> projDropdown;
+    
+    private JTextField phoneField;
+    private JTextField jobTitleField;
+    private JTextField salaryField;
+    private JComboBox<String> locationDropdown;
+    private JDatePickerImpl datePicker;
+    
     private JTable employeeTable;
     private EmployeeTransaction employeeTransaction;
 
@@ -90,15 +106,81 @@ public class EmployeeManagementApp extends JFrame {
         panel.add(deptDropdown);
         
         // Project ID
-        JLabel projectIdLabel = new JLabel("Project ID:");
+        JLabel projectIdLabel = new JLabel("Project:");
         projectIdLabel.setFont(new Font("Arial", Font.PLAIN, 20));
         projectIdLabel.setBounds(10, 220, 120, 25);
         panel.add(projectIdLabel);
         
-        projectIdField = new JTextField(20);
-        projectIdField.setBounds(140, 220, 200, 25);
-        panel.add(projectIdField);
+        // Fetch projects names from the database
+        Map<String, Integer> projects = employeeTransaction.fetchProject();
+        projDropdown = new JComboBox<>(projects.keySet().toArray(new String[0]));
+        projDropdown.setBounds(140, 220, 200, 25);
+        panel.add(projDropdown);
 
+        
+        // Phone
+        JLabel phoneLabel = new JLabel("Phone No:");
+        phoneLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        phoneLabel.setBounds(500, 60, 120, 25);
+        panel.add(phoneLabel);
+
+
+        phoneField = new JTextField(20);
+        phoneField.setBounds(600, 60, 200, 25);
+        panel.add(phoneField);
+
+
+        // JOB Title
+        JLabel JobTitleLabel = new JLabel("Job Title:");
+        JobTitleLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        JobTitleLabel.setBounds(500, 100, 120, 25);
+        panel.add(JobTitleLabel);
+
+
+        jobTitleField = new JTextField(20);
+        jobTitleField.setBounds(600, 100, 200, 25);
+        panel.add(jobTitleField);
+        
+        // DOB
+        JLabel dobLabel = new JLabel("DOB:");
+        dobLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        dobLabel.setBounds(500, 140, 120, 25);
+        panel.add(dobLabel);
+        
+        UtilDateModel model = new UtilDateModel();
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+        datePicker = new JDatePickerImpl(datePanel,new DateLabelFormatter());
+        datePicker.setBounds(600, 140, 200, 25);
+        panel.add(datePicker);
+
+        
+        // Salary
+        JLabel salaryLabel = new JLabel("Salary:");
+        salaryLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        salaryLabel.setBounds(500, 180, 120, 25);
+        panel.add(salaryLabel);
+
+
+        salaryField = new JTextField(20);
+        salaryField.setBounds(600, 180, 200, 25);
+        panel.add(salaryField);
+        
+        // Salary
+        JLabel locationLabel = new JLabel("Location:");
+        locationLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        locationLabel.setBounds(500, 220, 120, 25);
+        panel.add(locationLabel);
+
+
+        Map<String, Integer> offices = employeeTransaction.fetchOffice();
+        locationDropdown = new JComboBox<>(offices.keySet().toArray(new String[0]));
+        locationDropdown.setBounds(600, 220, 200, 25);
+        panel.add(locationDropdown);
+        
         JButton addButton = new JButton("Add");
         addButton.setBounds(10, 260, 150, 25);
         addButton.addActionListener(new ActionListener() {
@@ -152,7 +234,7 @@ public class EmployeeManagementApp extends JFrame {
             ResultSet rs = employeeTransaction.getAllEmployees();
             DefaultTableModel model = new DefaultTableModel(
             		new String[]{
-            				"Emp ID", "Name", "Email", "Dept Name", "Project ID"
+            				"Emp ID", "Name", "Email", "Dept Name", "Project"
             		}, 0);
             
             while (rs.next()) {
@@ -162,7 +244,7 @@ public class EmployeeManagementApp extends JFrame {
                 				rs.getString("name"), 
                 				rs.getString("email"), 
                 				rs.getString("dept_name"),
-                				rs.getInt("project_id")}
+                				rs.getString("project_name")}
                 		);
             }
             
@@ -175,16 +257,32 @@ public class EmployeeManagementApp extends JFrame {
     private void addEmployee() {
         try {
         	Map<String, Integer> departments = employeeTransaction.fetchDepartment();
-        	System.out.println((String) deptDropdown.getSelectedItem());
+        	Map<String, Integer> projects = employeeTransaction.fetchProject();
+        	Map<String, Integer> offices = employeeTransaction.fetchOffice();
+        	
             int empId = Integer.parseInt(empIdField.getText());
             String name = nameField.getText();
             String email = emailField.getText();
-            String selectedDepartmentName = (String) deptDropdown.getSelectedItem();
             
-            // Retrieve the department ID based on the selected department name
+            String phone = phoneField.getText();
+            
+            java.util.Date utilDate = (java.util.Date) ((UtilDateModel) datePicker.getModel()).getValue();
+            java.sql.Date dob = new java.sql.Date(utilDate.getTime());
+            
+//            Date dob = (Date) datePicker.getModel().getValue();
+            String jobTitle = jobTitleField.getText();
+            double salary = Double.parseDouble(salaryField.getText());
+            
+            String selectedDepartmentName = (String) deptDropdown.getSelectedItem();
             int deptId = departments.get(selectedDepartmentName);
-            int projectId = Integer.parseInt(projectIdField.getText());
-            employeeTransaction.addEmployee(empId, name, email, deptId, projectId);
+            
+            String selectedProjectName = (String) projDropdown.getSelectedItem();
+            int projectId = projects.get(selectedProjectName);
+            
+            String selectedOfficeName = (String) locationDropdown.getSelectedItem();
+            int officeId = offices.get(selectedOfficeName);
+            
+            employeeTransaction.addEmployee(empId, name, email, phone, dob, jobTitle, salary, deptId, officeId, projectId);
             loadEmployeeData();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -241,5 +339,27 @@ public class EmployeeManagementApp extends JFrame {
                 new EmployeeManagementApp().setVisible(true);
             }
         });
+    }
+    
+    public class DateLabelFormatter extends AbstractFormatter {
+
+        private String datePattern = "yyyy-MM-dd";
+        private SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
+
+        @Override
+        public Object stringToValue(String text) throws ParseException {
+            return dateFormatter.parseObject(text);
+        }
+
+        @Override
+        public String valueToString(Object value) throws ParseException {
+            if (value != null) {
+                Calendar cal = (Calendar) value;
+                return dateFormatter.format(cal.getTime());
+            }
+
+            return "";
+        }
+
     }
 }

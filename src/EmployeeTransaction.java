@@ -8,20 +8,32 @@ import javax.swing.JOptionPane;
 
 /**
  * @author Abhishek
+
  * @version June 2024
  */
 
 public class EmployeeTransaction {
 
-public void addEmployee(int empId, String name, String email, int deptId, int projectId) throws SQLException {
+public void addEmployee(int empId, String name, String email, String phone, Date dob, String jobTitle, double salary, int deptId, int officeId, int projectId) throws SQLException {
+
     // SQL statement to insert a new employee into the 'employees' table
-    String insertEmployee = "INSERT INTO employees (emp_id, name, email, dept_id) VALUES (?, ?, ?, ?)";
+    String insertEmployee = "INSERT INTO employees ("
+            + "emp_id, "
+            + "name, "
+            + "email, "
+            + "phone, "
+            + "dob, "
+            + "job_title, "
+            + "salary, "
+            + "hire_date, "
+            + "dept_id, "
+            + "office_id"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     // SQL statement to check if the email already exists in the 'employees' table
     String checkEmail = "SELECT COUNT(*) FROM employees WHERE email = ?";
     
-    // SQL statement to update the employee count in the 'departments' table
-    String updateDeptCount = "UPDATE departments SET employee_count = employee_count + 1 WHERE dept_id = ?";
+    // SQL statement to add offices, 
     
     // SQL statement to assign the new employee to a project
     String insertProjectAssignment = "INSERT INTO project_assignments (emp_id, project_id) VALUES (?, ?)";
@@ -32,7 +44,6 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
 
         try (PreparedStatement psCheckEmail = conn.prepareStatement(checkEmail);
              PreparedStatement psInsertEmployee = conn.prepareStatement(insertEmployee);
-             PreparedStatement psUpdateDeptCount = conn.prepareStatement(updateDeptCount);
              PreparedStatement psInsertProjectAssignment = conn.prepareStatement(insertProjectAssignment)
             ) {
 
@@ -46,16 +57,22 @@ public void addEmployee(int empId, String name, String email, int deptId, int pr
             }
 
             // Insert the new employee into the 'employees' table
+            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            
+//            System.out.println("asdasdas " + empId + " " + name + " " + email + " " + phone + " " + dob + " " + jobTitle + " " + salary + " " + deptId + " " + officeId + " " + projectId);
 
             psInsertEmployee.setInt(1, empId);
             psInsertEmployee.setString(2, name);
             psInsertEmployee.setString(3, email);
-            psInsertEmployee.setInt(4, deptId);
+            psInsertEmployee.setString(4, phone);
+            psInsertEmployee.setDate(5, dob);
+            psInsertEmployee.setString(6, jobTitle);
+            psInsertEmployee.setDouble(7, salary);
+            psInsertEmployee.setTimestamp(8, currentTimestamp);
+            psInsertEmployee.setInt(9, deptId);
+            psInsertEmployee.setInt(10, officeId);
+            
             psInsertEmployee.executeUpdate();
-
-            // Update the employee count in the corresponding department
-            psUpdateDeptCount.setInt(1, deptId);
-            psUpdateDeptCount.executeUpdate();
 
             // Assign the new employee to the default project
 
@@ -169,13 +186,11 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
     }
 
     public ResultSet getAllEmployees() throws SQLException {
-//        String query = ""
-//        		+ "SELECT e.*, pa.project_id as project_id FROM employees e LEFT JOIN "
-//        		+ "project_assignments pa ON e.emp_id = pa.emp_id";
-//        
-        String query = "SELECT e.*, d.dept_name as dept_name, pa.project_id as project_id FROM employees e "
+        
+        String query = "SELECT e.*, d.dept_name as dept_name, p.project_name as project_name FROM employees e "
                 + "LEFT JOIN departments d ON e.dept_id = d.dept_id "
-                + "LEFT JOIN project_assignments pa ON e.emp_id = pa.emp_id";
+                + "LEFT JOIN project_assignments pa ON e.emp_id = pa.emp_id "
+                + "LEFT JOIN projects p ON pa.project_id = p.project_id";
         
         Connection conn = DatabaseUtil.getConnection();
         PreparedStatement ps = conn.prepareStatement(query);
@@ -206,4 +221,59 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
 
         return departments;
     }
+    
+    public Map<String, Integer> fetchProject() {
+    	Map<String, Integer> projects = new HashMap<>();
+
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try(Connection conn = DatabaseUtil.getConnection()) {
+
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT project_id, project_name FROM projects");
+
+            // Retrieve department names from the result set and add them to the list
+            while (rs.next()) {
+            	int projectId = rs.getInt("project_id");
+                String projectName = rs.getString("project_name");
+               
+                projects.put(projectName, projectId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return projects;
+    }
+    
+    public Map<String, Integer> fetchOffice() {
+    	Map<String, Integer> offices = new HashMap<>();
+
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try(Connection conn = DatabaseUtil.getConnection()) {
+
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT office_id, location FROM offices");
+
+            // Retrieve department names from the result set and add them to the list
+            while (rs.next()) {
+            	int officeId = rs.getInt("office_id");
+                String location = rs.getString("location");
+               
+                offices.put(location, officeId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return offices;
+    }
+    
+    // TODO: @omkar add 5 methods using JOIN to fetch data
+    
+    // TODO: add data in supervisor table on inserting an employee, randomly assign an employee as a supervisor 
+    
 }
