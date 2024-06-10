@@ -1,7 +1,5 @@
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JOptionPane;
@@ -38,13 +36,21 @@ public void addEmployee(int empId, String name, String email, String phone, Date
     // SQL statement to assign the new employee to a project
     String insertProjectAssignment = "INSERT INTO project_assignments (emp_id, project_id) VALUES (?, ?)";
     
+    // SQL statement to randomly assign a supervisor to the new employee
+    String getRandomSupervisor = "SELECT emp_id FROM employees ORDER BY RAND() LIMIT 1";
+    
+    // SQL statement to insert into the 'supervisors' table
+    String insertSupervisor = "INSERT INTO supervisors (emp_id, supervisor_id) VALUES (?, ?)";
+
     try (Connection conn = DatabaseUtil.getConnection()) {
         // Disable auto-commit to handle transactions manually
         conn.setAutoCommit(false);
 
         try (PreparedStatement psCheckEmail = conn.prepareStatement(checkEmail);
              PreparedStatement psInsertEmployee = conn.prepareStatement(insertEmployee);
-             PreparedStatement psInsertProjectAssignment = conn.prepareStatement(insertProjectAssignment)
+             PreparedStatement psInsertProjectAssignment = conn.prepareStatement(insertProjectAssignment);
+        	 PreparedStatement psGetRandomSupervisor = conn.prepareStatement(getRandomSupervisor);
+             PreparedStatement psInsertSupervisor = conn.prepareStatement(insertSupervisor)
             ) {
 
             // Check if the email already exists in the database
@@ -80,6 +86,20 @@ public void addEmployee(int empId, String name, String email, String phone, Date
             psInsertProjectAssignment.setInt(2, projectId);
             psInsertProjectAssignment.executeUpdate();
 
+            // Get a random supervisor from the already inserted employees
+            ResultSet rsSupervisor = psGetRandomSupervisor.executeQuery();
+            if (rsSupervisor.next()) {
+                int supervisorId = rsSupervisor.getInt("emp_id");
+                
+                // Insert the new employee into the 'supervisors' table with the assigned supervisor
+                psInsertSupervisor.setInt(1, empId);
+                psInsertSupervisor.setInt(2, supervisorId);
+                psInsertSupervisor.executeUpdate();
+            } else {
+                conn.rollback();
+                throw new SQLException("No existing employees found to assign as a supervisor.");
+            }
+            
             // Commit the transaction if everything is successful
             conn.commit();
         } catch (SQLException e) {
