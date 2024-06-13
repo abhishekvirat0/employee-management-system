@@ -254,6 +254,16 @@ public class EmployeeManagementApp extends JFrame {
         });
         panel.add(empMoreThan60000);
         
+        JButton employeeWithSupervisor = new JButton("Employee with Supervisor");
+        employeeWithSupervisor.setBounds(670, 300, 150, 25);
+        employeeWithSupervisor.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	displayEmpWithSuperVisors();
+            }
+        });
+        panel.add(employeeWithSupervisor);
+        
         employeeTable = new JTable();
         JScrollPane scrollPane = new JScrollPane(employeeTable);
 //        scrollPane.setBounds(10, 210, 760, 340);
@@ -528,6 +538,57 @@ public class EmployeeManagementApp extends JFrame {
       }
   }
     
+    private void displayEmpWithSuperVisors() 
+    {
+		try 
+		{
+          String[] arr = EmployeeTransaction.getEmpWithSuperVisors();
+          
+          for(int i=0;i<arr.length;i++)
+          {
+        	  System.out.println("arr : " + arr[i]);
+          }
+
+          JFrame frame = new JFrame("Employees with Supervisors");
+          frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+          frame.setLayout(new FlowLayout());
+
+          JButton findButton = new JButton("Click here");
+          frame.add(findButton);
+
+          DefaultTableModel tableModel = new DefaultTableModel();
+          tableModel.addColumn("Employee Id");
+          tableModel.addColumn("Employee Name");
+          tableModel.addColumn("SuperVisor Name");
+          JTable table = new JTable(tableModel);
+
+          JScrollPane scrollPane = new JScrollPane(table);
+          frame.add(scrollPane);
+
+          findButton.addActionListener(e -> {
+    	  tableModel.setRowCount(0);
+    	  for (String str : arr) {
+    	        String[] values = str.split(","); // Split each string into separate values
+
+    	        // Create a new row vector and add the values
+    	        Vector<Object> row = new Vector<>();
+    	        row.add(values[0].trim()); // Employee_Id
+    	        row.add(values[1].trim()); // Employee_Name
+    	        row.add(values[2].trim()); 
+    	        tableModel.addRow(row); // Add the row to the table model
+    	    }
+          });
+          
+          frame.pack();
+          frame.setVisible(true);
+      } 
+      catch(Exception ex) 
+      {
+          ex.printStackTrace();
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+  
+    }
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -559,4 +620,5 @@ public class EmployeeManagementApp extends JFrame {
         }
 
     }
+
 }

@@ -426,4 +426,43 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
               return tbData;
         }
     
+    public static String[] getEmpWithSuperVisors()
+    {
+    	  Statement stmt = null;
+    	  ResultSet rs = null;
+    	  List<String> dataList = new ArrayList<>();
+    	  
+    	  try (Connection conn = DatabaseUtil.getConnection()) {
+    	        stmt = conn.createStatement();
+    	        rs = stmt.executeQuery("SELECT e.emp_id AS emp_id,\r\n"
+    	        		+ "       e.name AS emp_Name,\r\n"
+    	        		+ "       s.emp_id AS supervisor_ID,\r\n"
+    	        		+ "       s.name AS supervisor_name\r\n"
+    	        		+ "FROM employees e\r\n"
+    	        		+ "INNER JOIN supervisors sup ON e.emp_id = sup.emp_id\r\n"
+    	        		+ "INNER JOIN employees s ON sup.supervisor_id = s.emp_id;\r\n"
+    	        		+ "");
+    	   
+	        while (rs.next()) {
+	            String empId = rs.getString("emp_id");
+	            String empName = rs.getString("emp_name");
+	            String superVname = rs.getString("supervisor_id");
+	         
+	            
+	            System.out.println("empId : " + empId + "sup" + superVname);
+	            
+	            
+	            String rowData = empId + ","  +  empName + "," + empName + "," + superVname ;
+	            dataList.add(rowData);
+	            
+	            }
+	        rs.close();
+		    } 
+    	    catch (SQLException e) {
+		        e.printStackTrace();
+		    }
+    	  String[] tbData = dataList.toArray(new String[0]);
+          return tbData;
+    }
+
 }
