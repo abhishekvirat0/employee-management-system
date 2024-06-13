@@ -1,5 +1,7 @@
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JOptionPane;
@@ -305,8 +307,123 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
         return offices;
     }
     
-    // TODO: @omkar add 5 methods using JOIN to fetch data
-    
-    // TODO: add data in supervisor table on inserting an employee, randomly assign an employee as a supervisor 
+    // get all Employees in same Location
+    public static String[] getEmpSameLoc() {
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<String> dataList = new ArrayList<>();
+
+        try (Connection conn = DatabaseUtil.getConnection()) {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT\r\n"
+                    + "    A.name AS employee_name,\r\n"
+                    + "    B.office_id AS office_id,\r\n"
+                    + "    O.location AS office_loc\r\n"
+                    + "FROM\r\n"
+                    + "    Employees A\r\n"
+                    + "    INNER JOIN Employees B ON A.office_id = B.office_id AND A.emp_id <> B.emp_id\r\n"
+                    + "    LEFT JOIN Offices O ON A.office_id = O.office_id;");
+
+            // Retrieve data from the result set and add them to the list
+            while (rs.next()) {
+                String empName = rs.getString("employee_name");
+                String officeId = rs.getString("office_id");
+                String location = rs.getString("office_loc");
+                
+                String rowData = empName + "," + officeId + "," + location;
+                dataList.add(rowData);
+                
+            }
+          
+            rs.close();
+    	    } catch (SQLException e) {
+    	        e.printStackTrace();
+    	    
+    	    }
+            String[] tbData = dataList.toArray(new String[0]);
+            return tbData;
+        }
+        
+    // get all Employees who are assigned to a project
+    public static String[] getEmpWithAssignedProject()
+        {
+        	  Statement stmt = null;
+        	  ResultSet rs = null;
+        	  List<String> dataList = new ArrayList<>();
+        	  
+        	  try (Connection conn = DatabaseUtil.getConnection()) {
+        	        stmt = conn.createStatement();
+        	        rs = stmt.executeQuery("SELECT \r\n"
+        	        		+ "    e.emp_id,\r\n"
+        	        		+ "    e.name AS employee_name,\r\n"
+        	        		+ "    p.project_id,\r\n"
+        	        		+ "    p.project_name\r\n"
+        	        		+ "FROM \r\n"
+        	        		+ "    employees e\r\n"
+        	        		+ "JOIN \r\n"
+        	        		+ "    project_assignments pa ON e.emp_id = pa.emp_id\r\n"
+        	        		+ "JOIN \r\n"
+        	        		+ "    projects p ON pa.project_id = p.project_id");
+        	   
+    	        while (rs.next()) {
+    	            String empId = rs.getString("emp_id");
+    	            String empName = rs.getString("employee_name");
+    	            String projectId = rs.getString("project_id");
+    	            String projectName = rs.getString("project_name");
+    	            
+    	            System.out.println("empId : " + empId);
+    	            
+    	            
+    	            String rowData = empId + "," + empName + "," + projectId + "," + projectName;
+    	            dataList.add(rowData);
+    	            
+    	            }
+    	        rs.close();
+    		    } 
+        	    catch (SQLException e) {
+    		        e.printStackTrace();
+    		    }
+        	  String[] tbData = dataList.toArray(new String[0]);
+              return tbData;
+        }
+       
+    // get all Employee with salary more than 60k
+    public static String[] getEmpWithSalaryMoreThan60000()
+        {
+        	  Statement stmt = null;
+        	  ResultSet rs = null;
+        	  List<String> dataList = new ArrayList<>();
+        	  
+        	  try (Connection conn = DatabaseUtil.getConnection()) {
+        	        stmt = conn.createStatement();
+        	        rs = stmt.executeQuery("SELECT e.emp_id,e.salary , e.name as employee_name, e.email, d.dept_name, o.location\r\n"
+        	        		+ "FROM employees e\r\n"
+        	        		+ "INNER JOIN departments d ON e.dept_id = d.dept_id\r\n"
+        	        		+ "INNER JOIN offices o ON e.office_id = o.office_id\r\n"
+        	        		+ "WHERE e.salary > 60000");
+        	   
+    	        while (rs.next()) {
+    	            String empId = rs.getString("emp_id");
+    	            String empSal = rs.getString("salary");
+    	            String empName = rs.getString("employee_name");
+    	            String empEmail = rs.getString("email");
+    	            String deptName = rs.getString("dept_name");
+    	            String officeLoc = rs.getString("location");
+    	            
+    	            System.out.println("empId : " + empId);
+    	            
+    	            
+    	            String rowData = empId + ","  +  empSal + "," + empName + "," + empEmail + "," + deptName + "," + officeLoc;
+    	            dataList.add(rowData);
+    	            
+    	            }
+    	        rs.close();
+    		    } 
+        	    catch (SQLException e) {
+    		        e.printStackTrace();
+    		    }
+        	  String[] tbData = dataList.toArray(new String[0]);
+              return tbData;
+        }
     
 }

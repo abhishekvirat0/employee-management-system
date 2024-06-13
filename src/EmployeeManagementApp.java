@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Vector;
+import java.awt.FlowLayout;
 import java.awt.Font;
 
 @SuppressWarnings("serial")
@@ -222,10 +224,40 @@ public class EmployeeManagementApp extends JFrame {
         });
         panel.add(transferButton);
 
+        JButton sameLocEmpButton = new JButton("Same Loc Emp Button");
+        sameLocEmpButton.setBounds(470, 300, 150, 25);
+        sameLocEmpButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	displayEmpSameLocation();
+            }
+        });
+        panel.add(sameLocEmpButton);
+        
+        JButton empAssignedWithProject = new JButton("Employees Assigned Project");
+        empAssignedWithProject.setBounds(10, 300, 250, 25);
+        empAssignedWithProject.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	displayEmpWithProjectAssigned();
+            }
+        });
+        panel.add(empAssignedWithProject);
+        
+        JButton empMoreThan60000 = new JButton("Emp Sal > 60k");
+        empMoreThan60000.setBounds(300, 300, 150, 25);
+        empMoreThan60000.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	displayEmpWithMoreThan60000();
+            }
+        });
+        panel.add(empMoreThan60000);
+        
         employeeTable = new JTable();
         JScrollPane scrollPane = new JScrollPane(employeeTable);
 //        scrollPane.setBounds(10, 210, 760, 340);
-        scrollPane.setBounds(10, 310, 760, 240);
+        scrollPane.setBounds(10, 350, 760, 240);
         panel.add(scrollPane);
     }
     
@@ -338,6 +370,163 @@ public class EmployeeManagementApp extends JFrame {
         }
     }
 
+    private void displayEmpSameLocation() 
+    {
+		try 
+		{
+          String[] arr = EmployeeTransaction.getEmpSameLoc();
+
+          JFrame frame = new JFrame("Employees with Same Location");
+          frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+          frame.setLayout(new FlowLayout());
+
+          JButton findButton = new JButton("Click here");
+          frame.add(findButton);
+
+          DefaultTableModel tableModel = new DefaultTableModel();
+          tableModel.addColumn("Employee_Name");
+          tableModel.addColumn("Office Id");
+          tableModel.addColumn("Office_Loc");
+          JTable table = new JTable(tableModel);
+
+          JScrollPane scrollPane = new JScrollPane(table);
+          frame.add(scrollPane);
+
+          findButton.addActionListener(e -> {
+    	  tableModel.setRowCount(0);
+    	  for (String str : arr) {
+    	        String[] values = str.split(","); // Split each string into separate values
+
+    	        // Create a new row vector and add the values
+    	        Vector<Object> row = new Vector<>();
+    	        row.add(values[0].trim()); // Employee_Name
+    	        row.add(values[1].trim()); // Office Id
+    	        row.add(values[2].trim()); // Office_Loc
+
+    	        tableModel.addRow(row); // Add the row to the table model
+    	    }
+          });
+          
+          frame.pack();
+          frame.setVisible(true);
+      } 
+      catch(Exception ex) 
+      {
+          ex.printStackTrace();
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+  }
+    
+    private void displayEmpWithProjectAssigned() 
+    {
+		try 
+		{
+          String[] arr = EmployeeTransaction.getEmpWithAssignedProject();
+          
+          for(int i=0;i<arr.length;i++)
+          {
+        	  System.out.println("arr : " + arr[i]);
+          }
+
+          JFrame frame = new JFrame("Employees with Projects Assigned");
+          frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+          frame.setLayout(new FlowLayout());
+
+          JButton findButton = new JButton("Click here");
+          frame.add(findButton);
+
+          DefaultTableModel tableModel = new DefaultTableModel();
+          tableModel.addColumn("Employee Id");
+          tableModel.addColumn("Employee Name");
+          tableModel.addColumn("Project Id");
+          tableModel.addColumn("Project Name");
+          JTable table = new JTable(tableModel);
+
+          JScrollPane scrollPane = new JScrollPane(table);
+          frame.add(scrollPane);
+
+          findButton.addActionListener(e -> {
+    	  tableModel.setRowCount(0);
+    	  for (String str : arr) {
+    	        String[] values = str.split(","); // Split each string into separate values
+
+    	        // Create a new row vector and add the values
+    	        Vector<Object> row = new Vector<>();
+    	        row.add(values[0].trim()); // Employee_Id
+    	        row.add(values[1].trim()); // Employee_Name
+    	        row.add(values[2].trim()); // Project Id
+    	        row.add(values[3].trim()); // Project Name
+
+    	        tableModel.addRow(row); // Add the row to the table model
+    	    }
+          });
+          
+          frame.pack();
+          frame.setVisible(true);
+      } 
+      catch(Exception ex) 
+      {
+          ex.printStackTrace();
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+  }
+    
+    private void displayEmpWithMoreThan60000() 
+    {
+		try 
+		{
+          String[] arr = EmployeeTransaction.getEmpWithSalaryMoreThan60000();
+          
+          for(int i=0;i<arr.length;i++)
+          {
+        	  System.out.println("arr : " + arr[i]);
+          }
+
+          JFrame frame = new JFrame("Employees with Projects Assigned");
+          frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+          frame.setLayout(new FlowLayout());
+
+          JButton findButton = new JButton("Click here");
+          frame.add(findButton);
+
+          DefaultTableModel tableModel = new DefaultTableModel();
+          tableModel.addColumn("Employee Id");
+          tableModel.addColumn("Employee Sal");
+          tableModel.addColumn("Employee Name");
+          tableModel.addColumn("Employee Email");
+          tableModel.addColumn("Department Name ");
+          tableModel.addColumn("Office Location");
+          JTable table = new JTable(tableModel);
+
+          JScrollPane scrollPane = new JScrollPane(table);
+          frame.add(scrollPane);
+
+          findButton.addActionListener(e -> {
+    	  tableModel.setRowCount(0);
+    	  for (String str : arr) {
+    	        String[] values = str.split(","); // Split each string into separate values
+
+    	        // Create a new row vector and add the values
+    	        Vector<Object> row = new Vector<>();
+    	        row.add(values[0].trim()); // Employee_Id
+    	        row.add(values[1].trim()); // Employee_Name
+    	        row.add(values[2].trim()); // Project Id
+    	        row.add(values[3].trim());
+    	        row.add(values[4].trim());// Project Name
+    	        row.add(values[5].trim());// Project Name
+    	        tableModel.addRow(row); // Add the row to the table model
+    	    }
+          });
+          
+          frame.pack();
+          frame.setVisible(true);
+      } 
+      catch(Exception ex) 
+      {
+          ex.printStackTrace();
+          JOptionPane.showMessageDialog(this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+      }
+  }
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
