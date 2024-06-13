@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.awt.Font;
 
+@SuppressWarnings("serial")
 public class EmployeeManagementApp extends JFrame {
 
     private JTextField empIdField;
@@ -282,7 +283,13 @@ public class EmployeeManagementApp extends JFrame {
             String selectedOfficeName = (String) locationDropdown.getSelectedItem();
             int officeId = offices.get(selectedOfficeName);
             
-            employeeTransaction.addEmployee(empId, name, email, phone, dob, jobTitle, salary, deptId, officeId, projectId);
+            // Create an Employee object
+            Employee employee = new Employee(empId, name, email, phone, dob, jobTitle, salary, deptId, officeId, projectId);
+
+            // Add employee using the EmployeeTransaction class
+            employeeTransaction.addEmployee(employee);
+            
+//            employeeTransaction.addEmployee(empId, name, email, phone, dob, jobTitle, salary, deptId, officeId, projectId);
             loadEmployeeData();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -341,9 +348,10 @@ public class EmployeeManagementApp extends JFrame {
         });
     }
     
+    // for DataLabelFormat
     public class DateLabelFormatter extends AbstractFormatter {
 
-        private String datePattern = "yyyy-MM-dd";
+        private String datePattern = "yyyy-MM-dd"; // data pattern
         private SimpleDateFormat dateFormatter = new SimpleDateFormat(datePattern);
 
         @Override

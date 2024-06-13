@@ -12,7 +12,7 @@ import javax.swing.JOptionPane;
 
 public class EmployeeTransaction {
 
-public void addEmployee(int empId, String name, String email, String phone, Date dob, String jobTitle, double salary, int deptId, int officeId, int projectId) throws SQLException {
+public void addEmployee(Employee employee) throws SQLException {
 
     // SQL statement to insert a new employee into the 'employees' table
     String insertEmployee = "INSERT INTO employees ("
@@ -53,65 +53,78 @@ public void addEmployee(int empId, String name, String email, String phone, Date
              PreparedStatement psInsertSupervisor = conn.prepareStatement(insertSupervisor)
             ) {
 
-            // Check if the email already exists in the database
-            psCheckEmail.setString(1, email);
-            ResultSet rs = psCheckEmail.executeQuery();
-            if (rs.next() && rs.getInt(1) > 0) {
-                // If the email exists, rollback the transaction and throw an exception
+            if (isEmailExists(psCheckEmail, employee.getEmail())) {
                 conn.rollback();
                 throw new SQLException("Email already exists.");
             }
 
-            // Insert the new employee into the 'employees' table
-            Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-            
-//            System.out.println("asdasdas " + empId + " " + name + " " + email + " " + phone + " " + dob + " " + jobTitle + " " + salary + " " + deptId + " " + officeId + " " + projectId);
+            insertEmployee(psInsertEmployee, employee);
+            assignToProject(psInsertProjectAssignment, employee.getEmpId(), employee.getProjectId());
+            assignRandomSupervisor(psGetRandomSupervisor, psInsertSupervisor, employee.getEmpId());
 
-            psInsertEmployee.setInt(1, empId);
-            psInsertEmployee.setString(2, name);
-            psInsertEmployee.setString(3, email);
-            psInsertEmployee.setString(4, phone);
-            psInsertEmployee.setDate(5, dob);
-            psInsertEmployee.setString(6, jobTitle);
-            psInsertEmployee.setDouble(7, salary);
-            psInsertEmployee.setTimestamp(8, currentTimestamp);
-            psInsertEmployee.setInt(9, deptId);
-            psInsertEmployee.setInt(10, officeId);
-            
-            psInsertEmployee.executeUpdate();
-
-            // Assign the new employee to the default project
-
-            psInsertProjectAssignment.setInt(1, empId);
-            psInsertProjectAssignment.setInt(2, projectId);
-            psInsertProjectAssignment.executeUpdate();
-
-            // Get a random supervisor from the already inserted employees
-            ResultSet rsSupervisor = psGetRandomSupervisor.executeQuery();
-            if (rsSupervisor.next()) {
-                int supervisorId = rsSupervisor.getInt("emp_id");
-                
-                // Insert the new employee into the 'supervisors' table with the assigned supervisor
-                psInsertSupervisor.setInt(1, empId);
-                psInsertSupervisor.setInt(2, supervisorId);
-                psInsertSupervisor.executeUpdate();
-            } else {
-                conn.rollback();
-                throw new SQLException("No existing employees found to assign as a supervisor.");
-            }
-            
+            conn.commit();
             // Commit the transaction if everything is successful
             conn.commit();
         } catch (SQLException e) {
-        	if (e.getErrorCode() == 1062) { // MySQL error code for duplicate entry
-                JOptionPane.showInputDialog(null,"User already Exist with this Id");
-        	}
-            // Rollback the transaction in case of any exception and throw the exception
-            conn.rollback();
+        	conn.rollback(); // Rollback the transaction in case of any exception and throw the exception
+//        	if (e.getErrorCode() == 1062) { 
+//                JOptionPane.showInputDialog(null,"User already Exist with this Id");
+//        	}   
+            handleSQLException(e);// MySQL error code for duplicate entry
             throw e;
         }
     }
 }
+
+private boolean isEmailExists(PreparedStatement psCheckEmail, String email) throws SQLException {
+    psCheckEmail.setString(1, email);
+    try (ResultSet rs = psCheckEmail.executeQuery()) {
+        return rs.next() && rs.getInt(1) > 0;
+    }
+}
+
+private void insertEmployee(PreparedStatement psInsertEmployee, Employee employee) throws SQLException {
+    Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+    psInsertEmployee.setInt(1, employee.getEmpId());
+    psInsertEmployee.setString(2, employee.getName());
+    psInsertEmployee.setString(3, employee.getEmail());
+    psInsertEmployee.setString(4, employee.getPhone());
+    psInsertEmployee.setDate(5, employee.getDob());
+    psInsertEmployee.setString(6, employee.getJobTitle());
+    psInsertEmployee.setDouble(7, employee.getSalary());
+    psInsertEmployee.setTimestamp(8, currentTimestamp);
+    psInsertEmployee.setInt(9, employee.getDeptId());
+    psInsertEmployee.setInt(10, employee.getOfficeId());
+    psInsertEmployee.executeUpdate();
+}
+
+private void assignToProject(PreparedStatement psInsertProjectAssignment, int empId, int projectId) throws SQLException {
+    psInsertProjectAssignment.setInt(1, empId);
+    psInsertProjectAssignment.setInt(2, projectId);
+    psInsertProjectAssignment.executeUpdate();
+}
+
+private void assignRandomSupervisor(PreparedStatement psGetRandomSupervisor, PreparedStatement psInsertSupervisor, int empId) throws SQLException {
+    try (ResultSet rsSupervisor = psGetRandomSupervisor.executeQuery()) {
+        if (rsSupervisor.next()) {
+            int supervisorId = rsSupervisor.getInt("emp_id");
+            psInsertSupervisor.setInt(1, empId);
+            psInsertSupervisor.setInt(2, supervisorId);
+            psInsertSupervisor.executeUpdate();
+        } else {
+            throw new SQLException("No existing employees found to assign as a supervisor.");
+        }
+    }
+}
+
+private void handleSQLException(SQLException e) {
+    if (e.getErrorCode() == 1062) {
+        JOptionPane.showMessageDialog(null, "User already exists with this ID.");
+    } else {
+        e.printStackTrace();
+    }
+}
+
 
 public void updateEmployeeEmail(int empId, String newEmail) throws SQLException {
         String updateEmail = "UPDATE employees SET email = ? WHERE emp_id = ?";
