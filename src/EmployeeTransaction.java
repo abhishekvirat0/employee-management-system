@@ -64,9 +64,9 @@ public void addEmployee(Employee employee) throws SQLException {
             assignToProject(psInsertProjectAssignment, employee.getEmpId(), employee.getProjectId());
             assignRandomSupervisor(psGetRandomSupervisor, psInsertSupervisor, employee.getEmpId());
 
-            conn.commit();
             // Commit the transaction if everything is successful
             conn.commit();
+            JOptionPane.showMessageDialog(null, "Employees inserted successfully!");
         } catch (SQLException e) {
         	conn.rollback(); // Rollback the transaction in case of any exception and throw the exception
 //        	if (e.getErrorCode() == 1062) { 
@@ -150,6 +150,7 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
                 psUpdateEmail.executeUpdate();
 
                 conn.commit();
+                JOptionPane.showMessageDialog(null, "Employees Email Updated successfully!");
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -183,6 +184,7 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
                 psDeleteEmployee.executeUpdate();
 
                 conn.commit();
+                JOptionPane.showMessageDialog(null, "Employees Deleted successfully!");
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -213,6 +215,7 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
                 psUpdateNewDeptCount.executeUpdate();
 
                 conn.commit();
+                JOptionPane.showMessageDialog(null, "Employees Department Transfered successfully!");
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
@@ -316,13 +319,16 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
         try (Connection conn = DatabaseUtil.getConnection()) {
             stmt = conn.createStatement();
             rs = stmt.executeQuery("SELECT\r\n"
-                    + "    A.name AS employee_name,\r\n"
-                    + "    B.office_id AS office_id,\r\n"
-                    + "    O.location AS office_loc\r\n"
-                    + "FROM\r\n"
-                    + "    Employees A\r\n"
-                    + "    INNER JOIN Employees B ON A.office_id = B.office_id AND A.emp_id <> B.emp_id\r\n"
-                    + "    LEFT JOIN Offices O ON A.office_id = O.office_id;");
+            		+ "    A.name AS employee_name,\r\n"
+            		+ "    O.office_id AS office_id,\r\n"
+            		+ "    O.location AS office_loc\r\n"
+            		+ "FROM\r\n"
+            		+ "    Employees A\r\n"
+            		+ "LEFT JOIN\r\n"
+            		+ "    Offices O ON A.office_id = O.office_id\r\n"
+            		+ "ORDER BY\r\n"
+            		+ "    O.office_id, A.name;\r\n"
+            		+ "");
 
             // Retrieve data from the result set and add them to the list
             while (rs.next()) {
@@ -434,19 +440,27 @@ public void updateEmployeeEmail(int empId, String newEmail) throws SQLException 
     	  
     	  try (Connection conn = DatabaseUtil.getConnection()) {
     	        stmt = conn.createStatement();
-    	        rs = stmt.executeQuery("SELECT e.emp_id AS emp_id,\r\n"
-    	        		+ "       e.name AS emp_Name,\r\n"
-    	        		+ "       s.emp_id AS supervisor_ID,\r\n"
-    	        		+ "       s.name AS supervisor_name\r\n"
-    	        		+ "FROM employees e\r\n"
-    	        		+ "INNER JOIN supervisors sup ON e.emp_id = sup.emp_id\r\n"
-    	        		+ "INNER JOIN employees s ON sup.supervisor_id = s.emp_id;\r\n"
+    	        rs = stmt.executeQuery("SELECT \r\n"
+    	        		+ "    e.emp_id AS emp_id,\r\n"
+    	        		+ "    e.name AS emp_name,\r\n"
+    	        		+ "    s.emp_id AS supervisor_id,\r\n"
+    	        		+ "    s.name AS supervisor_name\r\n"
+    	        		+ "FROM \r\n"
+    	        		+ "    employees e\r\n"
+    	        		+ "INNER JOIN \r\n"
+    	        		+ "    supervisors sup \r\n"
+    	        		+ "ON \r\n"
+    	        		+ "    e.emp_id = sup.emp_id\r\n"
+    	        		+ "INNER JOIN \r\n"
+    	        		+ "    employees s \r\n"
+    	        		+ "ON \r\n"
+    	        		+ "    sup.supervisor_id = s.emp_id;\r\n"
     	        		+ "");
     	   
 	        while (rs.next()) {
 	            String empId = rs.getString("emp_id");
 	            String empName = rs.getString("emp_name");
-	            String superVname = rs.getString("supervisor_id");
+	            String superVname = rs.getString("supervisor_name");
 	         
 	            
 	            System.out.println("empId : " + empId + "sup" + superVname);

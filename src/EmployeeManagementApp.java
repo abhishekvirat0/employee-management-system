@@ -574,7 +574,7 @@ public class EmployeeManagementApp extends JFrame {
     	        Vector<Object> row = new Vector<>();
     	        row.add(values[0].trim()); // Employee_Id
     	        row.add(values[1].trim()); // Employee_Name
-    	        row.add(values[2].trim()); 
+    	        row.add(values[3].trim()); 
     	        tableModel.addRow(row); // Add the row to the table model
     	    }
           });
